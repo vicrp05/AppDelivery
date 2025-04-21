@@ -13,10 +13,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.google.gson.Gson
 import com.victor.app33.R
 import com.victor.app33.models.ResponseHttp
 import com.victor.app33.models.User
 import com.victor.app33.providers.UsersProvider
+import com.victor.app33.routes.utils.SharedPref
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -76,6 +78,11 @@ class RegisterActivity : AppCompatActivity() {
             usersProvider.register(user)?.enqueue(object: Callback<ResponseHttp> {
                 override fun onResponse(call: Call<ResponseHttp>, response: Response<ResponseHttp>) {
 
+                    if (response.body()?.isSuccess == true) {
+                        saveUserInSession(response.body()?.data.toString())
+                        goToClientHome()
+                    }
+
                     Toast.makeText(this@RegisterActivity, response.body()?.message, Toast.LENGTH_LONG).show()
 
                     Log.d(TAG, "Response: ${response}" )
@@ -91,6 +98,20 @@ class RegisterActivity : AppCompatActivity() {
 
         }
 
+    }
+
+    private fun goToClientHome() {
+        val i = Intent(this, SaveImageActivity::class.java)
+        i.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // Eliminar el historial de pantallas
+        startActivity(i)
+    }
+
+    private fun saveUserInSession(data: String) {
+
+        val sharedPref = SharedPref(this)
+        val gson = Gson()
+        val user = gson.fromJson(data, User::class.java)
+        sharedPref.save("user", user)
     }
 
     fun String.isEmailValid(): Boolean {

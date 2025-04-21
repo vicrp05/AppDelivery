@@ -37,6 +37,7 @@ android {
 
 dependencies {
 
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -46,6 +47,18 @@ dependencies {
     implementation ("com.google.code.gson:gson:2.8.6")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation(libs.firebase.firestore.ktx)
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("de.hdodenhof:circleimageview:3.1.0")
+    implementation ("com.github.dhaval2404:imagepicker:2.1")
+    implementation ("com.github.tommasoberlose:progress-dialog:1.0.0")
+    implementation ("com.github.denzcoskun:ImageSlideshow:0.1.2")
+    implementation(libs.play.services.cast.framework)
+    implementation(libs.androidx.material3.android)
+
+    annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
+
+
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

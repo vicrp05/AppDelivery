@@ -1,6 +1,8 @@
 package com.victor.app33.activities
 
 import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.TextUtils
@@ -8,10 +10,13 @@ import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import com.google.gson.Gson
 import com.victor.app33.R
-import com.victor.app33.activities.client.ClientHomeActivity
+import com.victor.app33.activities.client.home.ClientHomeActivity
+import com.victor.app33.activities.delivery.home.DeliveryHomeActivity
+import com.victor.app33.activities.restaurant.home.RestaurantHomeActivity
 import com.victor.app33.models.ResponseHttp
 import com.victor.app33.models.User
 import com.victor.app33.providers.UsersProvider
@@ -25,6 +30,7 @@ class MainActivity : AppCompatActivity() {
     var editTextEmail: EditText? = null
     var editTextPassword: EditText? = null
     var buttonLogin: Button? = null
+    var textViewForgotPassword: TextView? = null // Agregar variable para el TextView
     var usersProvider = UsersProvider()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,12 +41,17 @@ class MainActivity : AppCompatActivity() {
         editTextEmail = findViewById(R.id.edittext_email)
         editTextPassword = findViewById(R.id.edittext_password)
         buttonLogin = findViewById(R.id.btn_login)
+        textViewForgotPassword = findViewById(R.id.textview_forgot_password) // Asignar el TextView
 
         imageViewGoToRegister?.setOnClickListener { goToRegister() }
         buttonLogin?.setOnClickListener { login() }
+        textViewForgotPassword?.setOnClickListener { goToActualizarContrasenia() } // Configurar listener
+
 
         getUserFromSession()
     }
+
+
 
     private fun login() {
         val email = editTextEmail?.text.toString() // NULL POINTER EXCEPTION
@@ -57,7 +68,7 @@ class MainActivity : AppCompatActivity() {
                     if (responseBody != null && responseBody.isSuccess && responseBody.data != null) {
                         Toast.makeText(this@MainActivity, responseBody.message, Toast.LENGTH_LONG).show()
                         saveUserInSession(responseBody.data.toString())
-                        goToClientHome()
+
                     } else {
                         Toast.makeText(this@MainActivity, "Los datos no son correctos", Toast.LENGTH_LONG).show()
                     }
@@ -81,7 +92,31 @@ class MainActivity : AppCompatActivity() {
 
     private fun goToClientHome() {
         val i = Intent(this, ClientHomeActivity::class.java)
+        i.flags = FLAG_ACTIVITY_NEW_TASK or FLAG_ACTIVITY_CLEAR_TASK // Eliminar el historial de pantallas
         startActivity(i)
+    }
+    private fun goToRestaurantHome() {
+        val i = Intent(this, RestaurantHomeActivity::class.java)
+        i.flags = FLAG_ACTIVITY_NEW_TASK or FLAG_ACTIVITY_CLEAR_TASK // Eliminar el historial de pantallas
+        startActivity(i)
+    }
+
+    private fun goToDeliveyHome() {
+        val i = Intent(this, DeliveryHomeActivity::class.java)
+        i.flags = FLAG_ACTIVITY_NEW_TASK or FLAG_ACTIVITY_CLEAR_TASK // Eliminar el historial de pantallas
+        startActivity(i)
+    }
+
+    private fun goToSelectRol() {
+        val i = Intent(this, SelectRolesActivity::class.java)
+        i.flags = FLAG_ACTIVITY_NEW_TASK or FLAG_ACTIVITY_CLEAR_TASK // Eliminar el historial de pantallas
+        startActivity(i)
+    }
+
+
+    private fun goToActualizarContrasenia() {
+        val intent = Intent(this, Actualizar_contrasenia::class.java)
+        startActivity(intent)
     }
 
     private fun saveUserInSession(data: String) {
@@ -90,6 +125,14 @@ class MainActivity : AppCompatActivity() {
         val gson = Gson()
         val user = gson.fromJson(data, User::class.java)
         sharedPref.save("user", user)
+
+        if (user.roles?.size!! > 1) {//El usuario tiene mas de un rol
+            goToSelectRol()
+
+        }
+        else {//Solo un Rol
+            goToClientHome()
+        }
     }
 
     fun String.isEmailValid(): Boolean {
@@ -102,9 +145,32 @@ class MainActivity : AppCompatActivity() {
         val gson = Gson()
 
         if (!sharedPref.getData("user").isNullOrBlank()) {
+
             // SI EL USARIO EXISTE EN SESION
             val user = gson.fromJson(sharedPref.getData("user"), User::class.java)
-            goToClientHome()
+
+            if (!sharedPref.getData("rol").isNullOrBlank()) {
+
+                // SI EL USUARIO SELECCIONO EL ROL
+                val rol = sharedPref.getData("rol")?.replace("\"", "")
+                Log.d("MainActivity", "ROL $rol")
+
+
+                if (rol == "RESTAURANTE") {
+                    goToRestaurantHome()
+                }
+                else if (rol == "CLIENTE") {
+                    goToClientHome()
+                }
+                else if (rol == "REPARTIDOR"){
+                    goToDeliveyHome()
+                }
+            }
+            else {
+                Log.d("MainActivity", "ROL NO EXISTE")
+                goToClientHome()
+            }
+
         }
 
     }
@@ -130,6 +196,4 @@ class MainActivity : AppCompatActivity() {
         val i = Intent(this, RegisterActivity::class.java)
         startActivity(i)
     }
-
-
 }
